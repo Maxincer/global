@@ -17,11 +17,16 @@ import os
 import pymongo
 import pandas as pd
 
+"""
+None:
+    1. 强制: Mark必为int.
+"""
+
 
 class DatabaseBasicInfo:
     def __init__(self):
         self.str_today = datetime.strftime(datetime.today(), '%Y%m%d')
-        # self.str_today = '20210302'
+        # self.str_today = '20210422'
 
         self.fpath_basicinfo = r'D:\projects\global\data\basic_info.xlsx'
         dbclient = pymongo.MongoClient('mongodb://192.168.2.162:27017/', username='Maxincer', password='winnerismazhe')
@@ -55,6 +60,7 @@ class DatabaseBasicInfo:
                                         'PostTradeDataFilePath': str,
                                         'PreTradeDataFilePath': str,
                                         'DataSourceType': str,
+                                        'MonitorDisplayMark': int,
                                         'PatchMark': int,
                                         'PrdCode': str,
                                         'RptMark': int,
@@ -86,11 +92,10 @@ class DatabaseBasicInfo:
         print('Collection "acctinfo" has been updated.')
 
     def update_prdinfo(self):
-        iter_dicts_prdcodes_rptmark = self.col_acctinfo.find(
-            {'DataDate': self.str_today, 'RptMark': 1}, {'PrdCode': 1, '_id': 0}
-        )
         set_prdcodes_rptmark = set()
-        for dict_prdcode_rptmark in iter_dicts_prdcodes_rptmark:
+        for dict_prdcode_rptmark in self.col_acctinfo.find(
+            {'DataDate': self.str_today, 'RptMark': 1}, {'PrdCode': 1, '_id': 0}
+        ):
             prdcode = dict_prdcode_rptmark['PrdCode']
             set_prdcodes_rptmark.add(prdcode)
 
@@ -283,13 +288,14 @@ class DatabaseBasicInfo:
                 f'{dif_downloader2basic}'
             )
 
-    def run(self):
+    def run(self): 
         self.update_acctinfo()
         self.update_prdinfo()
         self.update_broker_info()
         self.update_strategy_info()
         self.update_trdplan_expression()
         self.check_whether_set_faccts_consistent_with_set_from_owj()
+        print(f'Finished at {datetime.now().strftime("%H%M%S")}')
 
 
 if __name__ == '__main__':
